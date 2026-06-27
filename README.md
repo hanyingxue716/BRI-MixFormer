@@ -73,7 +73,7 @@ BRI-MixFormer-main/
 ## Dataset Description
 1. **Self-built PELD Clinical Dataset**
 Intraoperative endoscopic images collected from tertiary hospitals with pixel-level nerve annotations. The split ratio is `train:val:test = 8:1:1`.
-⚠️ This clinical dataset involves patient privacy and is **not publicly available**, only used for internal experiments.
+This clinical dataset involves patient privacy and is **not publicly available**, only used for internal experiments.
 2. **Public Polyp Generalization Datasets**
 Five publicly available gastrointestinal endoscopic datasets: Kvasir, CVC-ClinicDB, ColonDB, ETIS, EndoScene. All datasets can be downloaded openly for cross-domain generalization evaluation.
 
@@ -88,31 +88,4 @@ python tools/train.py configs/brimixformer/peldconfig.py
 python tools/test_peld_final.py work_dirs/xxx/best_mDice.pth
 ```
 
-### Single Image Visualization Inference
-```shell
-python demo/image_demo.py test.png configs/brimixformer/peldconfig.py work_dirs/xxx/best_mDice.pth --out-file seg_result.png --device cuda:0
-```
 
-## Core Modules (Modified from U-MixFormer)
-1. `DepthWiseConv_PELD` / `FeedForward_PELD` / `CrossAttention_PELD`: Lightweight convolution and cross-attention blocks optimized for endoscopic tiny nerve features.
-2. `NeuronIntegrityMultiScaleJudge_PELD`: Multi-branch module to generate confidence mask for filtering irrelevant surgical background.
-3. `BoundaryIntegrityRefineBlock_PELD`: GIQR core with three-stage pipeline: Coarse-Align → Mask-Refine → Fine-Detail.
-4. `MultiScaleKeyFusion_PELD`: Aggregate multi-scale encoder features to build global key-value memory pool for iterative cross attention.
-5. `IRBLoss`: Custom hybrid loss combining regional Dice-Focal loss and Sobel gradient edge loss, controlled by hyperparameters α and β.
-6. `BoundaryIntegrityIterAttenHead_PELD`: Full registered decoder head compatible with standard MMSeg segmentation pipeline.
-
-## Hyperparameter Notes
-Loss weights α=1.5, β=1.2 are tuned only on PELD validation set and fixed for all comparison & generalization experiments. Mask clamp threshold τ=0.4.
-
-## Citation
-```bibtex
-@article{xxx2026brimixformer,
-  title={BRI-MixFormer: Boundary Iterative Hybrid Network for Intraoperative Nerve Segmentation in PELD},
-  author={XXX},
-  journal={XXX},
-  year={2026}
-}
-```
-
-## License
-This project is released under the Apache 2.0 license.
