@@ -1,125 +1,118 @@
-# U-MixFormer: UNet-like Transformer with Mix-Attention for Efficient Semantic Segmentation [[paper](https://arxiv.org/abs/2312.06272)]
-
-## Introduction
-<!-- 
-### 🎉 U-MixFormer 🎉 -->
-
-<!-- ![image](FeedFormer-master/main_fig.png) -->
+# BRI-MixFormer: Boundary Iterative Hybrid Network for Intraoperative Nerve Segmentation in PELD
+## Project Introduction
 <div align="center">
   <img src="./model_architecture.png" height="400">
 </div>
 <p align="center">
-  U-MixFormer architecture.
+  Overall architecture of the proposed BRI-MixFormer.
 </p>
 
-We propose a novel transformer decoder, U-MixFormer, built upon the U-Net structure, designed for efficient semantic segmentation. Our approach distinguishes itself from the previous transformer methods by leveraging lateral connections between encoder and decoder stages as feature queries for the attention modules, apart from the traditional reliance on skip connections.
-Moreover, we innovatively mix hierarchical feature maps from various encoder and decoder stages to form a unified representation for keys and values, giving rise to our unique Mix-attention module.
+This implementation is improved based on the lightweight CNN-Transformer hybrid segmentation framework [U-MixFormer](https://arxiv.org/abs/2312.06272), targeting pixel-level segmentation of fully exposed nerve roots during Percutaneous Endoscopic Lumbar Discectomy (PELD).
 
-<!-- ![image](FeedFormer-master/main_fig.png) -->
+Traditional endoscopic segmentation models suffer from encoder-biased design, poor extraction of faint nerve features, severe contour distortion, and weak robustness against intraoperative occlusion. We propose two core innovations:
+1. **GIQR (Global Iterative Query Refinement) Module**: Multi-scale confidence mask filters background noise from surgical instruments and adipose tissue; cross-layer feature back-propagation iteratively repairs broken slender nerve edges.
+2. **IRB (Iterative Region Boundary Loss)**: Combines Dice-Focal region loss and Sobel gradient edge loss to jointly optimize region integrity and contour precision.
+
+The model maintains lightweight parameters and real-time inference speed for intraoperative navigation. It achieves state-of-the-art metrics on our self-built clinical PELD dataset, and strong cross-domain generalization is validated on five public gastrointestinal polyp datasets.
+
 <div align="center">
-  <img src="./main_figure.png" height="400">
+  <img src="./visual_comparison.png" height="400">
 </div>
 <p align="center">
-  Performance vs. computational efficiency on ADE20K (single-scale inference).
-  U-MixFormer outperforms previous methods in all configurations.
+  Qualitative segmentation comparison under instrument occlusion and low-contrast surgical fields.
 </p>
 
-## Installation
+## Verified Environment Versions
+We build the project based on [MMSegmentation v1.0.0](https://github.com/open-mmlab/mmsegmentation/tree/v1.0.0).
+### Core Dependencies
+- Python: 3.10
+- PyTorch: 2.1.0+cu121
+- CUDA (bundled with PyTorch): 12.1
+- mmengine: 0.10.7
+- mmcv: 2.1.0
+- mmsegmentation: 1.0.0
+- timm: 1.0.25
+- opencv-python: 4.13.0.92
 
-We use [MMSegmentation v1.0.0](https://github.com/open-mmlab/mmsegmentation/tree/v1.0.0) as the codebase.
+### Full Installation Script
+```bash
+# 1. Create conda environment (optional)
+conda create -n openmmlab python=3.10 -y
+conda activate openmmlab
 
-For install and data preparation, please find the guidelines in [MMSegmentation v1.0.0](https://github.com/open-mmlab/mmsegmentation/tree/v1.0.0) for the installation and data preparation.
+# 2. Install PyTorch matched with CUDA 12.1
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-Environments are conducted on ```CUDA 11.0``` and  ```pytorch 1.13.0```
+# 3. Install OpenMMLab libraries
+pip install mmengine==0.10.7 mmcv==2.1.0 mmsegmentation==1.0.0
 
-## Training
+# 4. Auxiliary vision packages
+pip install timm==1.0.25 opencv-python==4.13.0.92 pillow scipy matplotlib
 
+# 5. Install custom modules of this project
+python setup.py install
 ```
-# Single-gpu training
-python tools/train.py configs/umixformer/umixformer_mit-b0_8xb2-160k_ade20k-512x512.py
 
-# Multi-gpu training
-./tools/dist_train.sh configs/umixformer/umixformer_mit-b0_8xb2-160k_ade20k-512x512.py <GPU_NUM>
+## Directory Layout
+```
+BRI-MixFormer-main/
+├── data/                    # PELD clinical dataset & polyp public dataset scripts
+├── datasets/                # Custom dataset & augmentation pipeline
+├── demo/                    # Single-image inference visualization
+├── docs/                    # Paper figures & experimental records
+├── mmseg/models/decode_heads/ # Core BRI-MixFormer decoder (modified from U-MixFormer)
+├── pretrain/                # MiT lightweight backbone weights
+├── projects/                # All training & ablation config files
+├── resources/               # Segmentation comparison & heatmap figures
+├── tools/                   # Train / test entry scripts
+├── work_dirs/               # Auto-saved checkpoints, logs and metrics
+├── setup.py                 # Registration script for custom networks
+└── README.md                # This file
 ```
 
-## Evaluation
+## Dataset Description
+1. **Self-built PELD Clinical Dataset**
+Intraoperative endoscopic images collected from tertiary hospitals with pixel-level nerve annotations. The split ratio is `train:val:test = 8:1:1`.
+⚠️ This clinical dataset involves patient privacy and is **not publicly available**, only used for internal experiments.
+2. **Public Polyp Generalization Datasets**
+Five publicly available gastrointestinal endoscopic datasets: Kvasir, CVC-ClinicDB, ColonDB, ETIS, EndoScene. All datasets can be downloaded openly for cross-domain generalization evaluation.
 
-All our models were trained using 2 A100 GPUs
-
-Example: evaluate ```U-MixFormer-B0``` on ```ADE20K```:
-
+## Training & Evaluation Commands
+### Single GPU Training
+```bash
+python tools/train.py configs/brimixformer/peldconfig.py
 ```
-# Single-gpu training
-python tools/test.py configs/umixformer/umixformer_mit-b0_8xb2-160k_ade20k-512x512.py /path/to/checkpoint_file
 
-# Multi-gpu training
-./tools/dist_test.sh configs/umixformer/umixformer_mit-b0_8xb2-160k_ade20k-512x512.py /path/to/checkpoint_file <GPU_NUM>
+### Evaluate Checkpoint on Validation Set
+```bash
+python tools/test_peld_final.py work_dirs/xxx/best_mDice.pth
 ```
 
-## Qualitative Test (i.e. visualization)
-### Visualization
+### Single Image Visualization Inference
 ```shell
-python demo/image_demo.py ${IMAGE_FILE} ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out-file ${OUTPUT_IMAGE_NAME}] [--device ${DEVICE_NAME}] [--palette-thr ${PALETTE}]
+python demo/image_demo.py test.png configs/brimixformer/peldconfig.py work_dirs/xxx/best_mDice.pth --out-file seg_result.png --device cuda:0
 ```
 
-Example: visualize ```U-MixFormer-B0``` on ```cityscapes```: 
+## Core Modules (Modified from U-MixFormer)
+1. `DepthWiseConv_PELD` / `FeedForward_PELD` / `CrossAttention_PELD`: Lightweight convolution and cross-attention blocks optimized for endoscopic tiny nerve features.
+2. `NeuronIntegrityMultiScaleJudge_PELD`: Multi-branch module to generate confidence mask for filtering irrelevant surgical background.
+3. `BoundaryIntegrityRefineBlock_PELD`: GIQR core with three-stage pipeline: Coarse-Align → Mask-Refine → Fine-Detail.
+4. `MultiScaleKeyFusion_PELD`: Aggregate multi-scale encoder features to build global key-value memory pool for iterative cross attention.
+5. `IRBLoss`: Custom hybrid loss combining regional Dice-Focal loss and Sobel gradient edge loss, controlled by hyperparameters α and β.
+6. `BoundaryIntegrityIterAttenHead_PELD`: Full registered decoder head compatible with standard MMSeg segmentation pipeline.
 
-```shell
-python demo/image_demo.py demo/demo.png configs/umixformer/umixformer_mit-b0_8xb1-160k_cityscapes-1024x1024.py \
-/path/to/checkpoint_file --out-file demo/output.png --device cuda:0 --palette cityscapes
-```
-<!-- ### Zoom in the specific area (only for paper)
-```shell
-python paper/zoom_demo.py
-```
-
-### Make Figure No.1
-Generate a SVG file
-```shell
-python paper/figure1.py
-``` -->
-
-## Onnx Model Conversion
-Please first install mmdeploy in another folder and run on mmsegmentation folder
-```shell
-python /path/to/MMDEPLOY_PATH/tools/deploy.py ${DEPLOY_CONFIG_FILE} ${MODEL_CONFIG} ${CHECKPOINT_FILE} ${IMAGE_FILE} \
-[--work-dir ${SAVE_FOLDER_NAME}] [--device ${DEVICE_NAME}] [--dump-info]
-```
-
-Example: Deploy ```U-MixFormer-B0``` on ADE20K into ONNX model: 
-
-```shell
-python /path/to/MMDEPLOY_PATH/tools/deploy.py ../mmdeploy/configs/mmseg/segmentation_onnxruntime_static-512x512.py \
-configs/umixformer/umixformer_mit-b0_8xb2-160k_ade20k-512x512.py CHECKPOINT_FILE \
-demo/demo.png \
---work-dir mmdeploy_model/umixformer_mit_b0_ade_512x512 \
---device cuda \
---dump-info
-```
-
-## Table
-<!-- ![image](FeedFormer-master/main_fig.png) -->
-<div align="center">
-  <img src="./Table_1.png" height="400">
-</div>
-<p align="center">
-  Performance comparison with the state-of-the art light-weight and middle-weight methods on ADE20K and Cityscapes
-</p>
+## Hyperparameter Notes
+Loss weights α=1.5, β=1.2 are tuned only on PELD validation set and fixed for all comparison & generalization experiments. Mask clamp threshold τ=0.4.
 
 ## Citation
-
-If U-MixFormer is useful or relevant to your research, please kindly recognize our contributions by citing our paper:
-
 ```bibtex
-@inproceedings{seulki2025umixformer,
-  title={U-MixFormer: UNet-like Transformer with Mix-Attention for Efficient Semantic Segmentation},
-  author={Seul-Ki Yeom and Julian von Klitzing},
-  booktitle={Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision},
-  pages={XXX--XXX},
-  year={2025}
+@article{xxx2026brimixformer,
+  title={BRI-MixFormer: Boundary Iterative Hybrid Network for Intraoperative Nerve Segmentation in PELD},
+  author={XXX},
+  journal={XXX},
+  year={2026}
 }
 ```
 
 ## License
-
-This project is released under the [Apache 2.0 license](LICENSE).
+This project is released under the Apache 2.0 license.
