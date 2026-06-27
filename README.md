@@ -15,8 +15,7 @@
 
 
 
-This implementation is improved based on the lightweight CNN-Transformer hybrid segmentation framework [U-MixFormer](https:
-//github.com/julian-klitzing/u-mixformer), targeting pixel-level segmentation of fully exposed nerve roots during Percutaneous Endoscopic Lumbar Discectomy (PELD).
+This implementation is improved based on the lightweight CNN-Transformer hybrid segmentation framework [U-MixFormer](https://github.com/julian-klitzing/u-mixformer), targeting pixel-level segmentation of fully exposed nerve roots during Percutaneous Endoscopic Lumbar Discectomy (PELD).
 
 Traditional endoscopic segmentation models suffer from encoder-biased design, poor extraction of faint nerve features, severe contour distortion, and weak robustness against intraoperative occlusion. We propose two core innovations:
 1. **GIQR (Global Iterative Query Refinement) Module**: Multi-scale confidence mask filters background noise from surgical instruments and adipose tissue; cross-layer feature back-propagation iteratively repairs broken slender nerve edges.
