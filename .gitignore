@@ -1,0 +1,16 @@
+# 训练缓存、权重
+work_dirs/
+*.pth
+*.ckpt
+# 数据集（隐私临床数据不上传）
+data/
+# 环境缓存
+__pycache__/
+*.pyc
+*.egg-info/
+root/
+# 日志、临时文件
+*.log
+*.out
+# 系统文件
+.DS_Store
