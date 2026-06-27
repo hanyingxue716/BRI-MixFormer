@@ -23,10 +23,9 @@ Traditional endoscopic segmentation models suffer from encoder-biased design, po
 
 The model maintains lightweight parameters and real-time inference speed for intraoperative navigation. It achieves state-of-the-art metrics on our self-built clinical PELD dataset, and strong cross-domain generalization is validated on five public gastrointestinal polyp datasets.
 <div align="center">
-  <img src="./visual_comparison.png" height="400">
+  <img src="./qualitative.png" height="400">
 </div>
 <p align="center">
-  Qualitative segmentation comparison under instrument occlusion and low-contrast surgical fields.
   Visualization of qualitative segmentation results under instrument occlusion and low-contrast surgical fields by different methods.
 </p>
 <div align="center">
